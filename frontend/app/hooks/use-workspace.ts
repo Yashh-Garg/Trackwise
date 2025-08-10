@@ -1,6 +1,8 @@
 import type { WorkspaceForm } from "@/components/workspace/create-workspace";
 import { fetchData, postData, deleteData, updateData } from "@/lib/fetch-util";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 
 export const useCreateWorkspace = () => {
   return useMutation({
@@ -17,6 +19,32 @@ export const useGetWorkspacesQuery = () => {
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 };
+
+
+export const useRemoveWorkspaceMemberMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ workspaceId, memberId }: { workspaceId: string; memberId: string }) => {
+      const { data } = await axios.delete(
+        `${import.meta.env.VITE_API_URL}/workspaces/${workspaceId}/members/${memberId}`,
+        { withCredentials: true }
+      );
+      return data;
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["workspace", variables.workspaceId, "details"],
+      });
+    },
+  });
+};
+
+
+
+
+
+
 
 export const useGetWorkspaceQuery = (workspaceId: string) => {
   return useQuery({
@@ -42,7 +70,7 @@ export const useGetWorkspaceStatsQuery = (workspaceId: string) => {
     staleTime: 2 * 60 * 1000, // 2 minutes for stats
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-     refetchOnWindowFocus: false,
+    refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
   });

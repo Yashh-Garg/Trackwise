@@ -6,6 +6,82 @@ import Task from "../models/task.js";
 import jwt from "jsonwebtoken";
 import { sendEmail } from "../libs/send-email.js";
 import { recordActivity } from "../libs/index.js";
+import mongoose from "mongoose";
+// export const getWorkspaceDetails = async (req, res) => {
+//   const { id } = req.params;
+//   const userId = req.user._id; // assuming you have authentication middleware
+
+//   const workspace = await Workspace.findById(id)
+//     .populate("owner")
+//     .populate("members.user")
+//     .populate("projects");
+
+//   if (!workspace) {
+//     return res.status(404).json({ message: "Workspace not found" });
+//   }
+
+//   const currentUserRole =
+//     workspace.members.find((m) => m.user._id.toString() === userId.toString())
+//       ?.role || null;
+
+//   res.json({
+//     ...workspace.toObject(),
+//     currentUserRole,
+//   });
+// };
+
+const removeWorkspaceMember = async (req, res) => {
+  try {
+    const { workspaceId, memberId } = req.params;
+    const userId = req.user._id; // From auth middleware
+
+    if (
+      !mongoose.Types.ObjectId.isValid(workspaceId) ||
+      !mongoose.Types.ObjectId.isValid(memberId)
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Invalid workspace or member ID" });
+    }
+
+    const workspace = await Workspace.findById(workspaceId);
+    if (!workspace) {
+      return res.status(404).json({ message: "Workspace not found" });
+    }
+
+    // Only owner or admin can remove
+    const currentUserRole = workspace.members.find(
+      (m) => m.user.toString() === userId.toString()
+    )?.role;
+
+    if (!["owner", "admin"].includes(currentUserRole)) {
+      return res
+        .status(403)
+        .json({ message: "Not authorized to remove members" });
+    }
+
+    // Prevent removing owner
+    const memberToRemove = workspace.members.find(
+      (m) => m.user.toString() === memberId.toString()
+    );
+    if (memberToRemove?.role === "owner") {
+      return res
+        .status(400)
+        .json({ message: "Cannot remove the workspace owner" });
+    }
+
+    workspace.members = workspace.members.filter(
+      (m) => m.user.toString() !== memberId.toString()
+    );
+
+    await workspace.save();
+
+    res.status(200).json({ message: "Member removed successfully", workspace });
+  } catch (error) {
+    console.error("Error removing workspace member:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 const createWorkspace = async (req, res) => {
   try {
@@ -109,7 +185,7 @@ const getWorkspaceStats = async (req, res) => {
     const { workspaceId } = req.params;
 
     // Add validation for workspaceId
-    if (!workspaceId || workspaceId === 'null' || workspaceId === 'undefined') {
+    if (!workspaceId || workspaceId === "null" || workspaceId === "undefined") {
       return res.status(400).json({
         message: "Invalid workspace ID provided",
       });
@@ -546,7 +622,7 @@ const updateWorkspace = async (req, res) => {
     const { name, description, color } = req.body;
 
     // Validate workspaceId
-    if (!workspaceId || workspaceId === 'null' || workspaceId === 'undefined') {
+    if (!workspaceId || workspaceId === "null" || workspaceId === "undefined") {
       return res.status(400).json({
         message: "Invalid workspace ID provided",
       });
@@ -610,7 +686,7 @@ const deleteWorkspace = async (req, res) => {
     const { workspaceId } = req.params;
 
     // Validate workspaceId
-    if (!workspaceId || workspaceId === 'null' || workspaceId === 'undefined') {
+    if (!workspaceId || workspaceId === "null" || workspaceId === "undefined") {
       return res.status(400).json({
         message: "Invalid workspace ID provided",
       });
@@ -640,10 +716,10 @@ const deleteWorkspace = async (req, res) => {
       // Delete all projects in the workspace
       Project.deleteMany({ workspace: workspaceId }),
       // Delete all tasks in the workspace projects
-      Task.deleteMany({ 
-        project: { 
-          $in: await Project.find({ workspace: workspaceId }).select('_id') 
-        } 
+      Task.deleteMany({
+        project: {
+          $in: await Project.find({ workspace: workspaceId }).select("_id"),
+        },
       }),
       // Delete all workspace invites
       WorkspaceInvite.deleteMany({ workspaceId: workspaceId }),
@@ -684,4 +760,5 @@ export {
   acceptInviteByToken,
   updateWorkspace,
   deleteWorkspace,
+  removeWorkspaceMember,
 };

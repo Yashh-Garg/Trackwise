@@ -1,85 +1,65 @@
-import { Loader } from "@/components/loader";
+import React, { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useGetMyTasksQuery } from "@/hooks/use-task";
-import { useGetWorkspaceDetailsQuery } from "@/hooks/use-workspace";
-import type { Task, Workspace } from "@/types";
-import { format } from "date-fns";
-import { ArrowUpRight, CheckCircle, Clock, FilterIcon } from "lucide-react";
-import React, { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router";
+import { Loader } from "@/components/loader";
 
-const Members = () => {
+import { useGetWorkspaceDetailsQuery, useRemoveWorkspaceMemberMutation } from "@/hooks/use-workspace";
+import type { Workspace } from "@/types";
+
+const Members: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const workspaceId = searchParams.get("workspaceId") ?? "";
+  const [search, setSearch] = useState(searchParams.get("search") || "");
 
-  const workspaceId = searchParams.get("workspaceId");
-  const initialSearch = searchParams.get("search") || "";
-  const [search, setSearch] = useState<string>(initialSearch);
-
+  // Update search in URL when search state changes
   useEffect(() => {
-    const params: Record<string, string> = {};
-
-    searchParams.forEach((value, key) => {
-      params[key] = value;
-    });
-
+    if (!workspaceId) return;
+    const params = Object.fromEntries(searchParams.entries());
     params.search = search;
-
     setSearchParams(params, { replace: true });
-  }, [search]);
+  }, [search, workspaceId, searchParams, setSearchParams]);
 
+  // Keep local search in sync with URL
   useEffect(() => {
     const urlSearch = searchParams.get("search") || "";
     if (urlSearch !== search) setSearch(urlSearch);
-  }, [searchParams]);
+  }, [searchParams, search]);
 
-  const { data, isLoading } = useGetWorkspaceDetailsQuery(workspaceId!) as {
+  const { data, isLoading } = useGetWorkspaceDetailsQuery(workspaceId) as {
     data: Workspace;
     isLoading: boolean;
   };
 
-  if (isLoading)
-    return (
-      <div>
-        <Loader />
-      </div>
-    );
+  const { mutate: removeMember, isPending: isRemoving } =
+    useRemoveWorkspaceMemberMutation();
 
+  if (isLoading) return <Loader />;
   if (!data || !workspaceId) return <div>No workspace found</div>;
 
-  const filteredMembers = data?.members?.filter(
-    (member) =>
-      member.user.name.toLowerCase().includes(search.toLowerCase()) ||
-      member.user.email.toLowerCase().includes(search.toLowerCase()) ||
-      member.role?.toLowerCase().includes(search.toLowerCase())
+  const filteredMembers = data.members?.filter((member) =>
+    [member.user.name, member.user.email, member.role]
+      .some((field) => field?.toLowerCase().includes(search.toLowerCase()))
   );
+
+  const canRemove = (memberRole: string) =>
+    ["admin", "owner"].includes(data.currentUserRole || "") &&
+    memberRole !== "owner";
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-start md:items-center justify-between">
         <h1 className="text-2xl font-bold">Workspace Members</h1>
       </div>
 
+      {/* Search */}
       <Input
-        placeholder="Search members ...."
+        placeholder="Search members..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         className="max-w-md"
@@ -100,14 +80,14 @@ const Members = () => {
                 {filteredMembers?.length} members in your workspace
               </CardDescription>
             </CardHeader>
-
             <CardContent>
               <div className="divide-y">
-                {filteredMembers.map((member) => (
+                {filteredMembers?.map((member) => (
                   <div
                     key={member.user._id}
                     className="flex flex-col md:flex-row items-center justify-between p-4 gap-3"
                   >
+                    {/* Member Info */}
                     <div className="flex items-center space-x-4">
                       <Avatar className="bg-gray-500">
                         <AvatarImage src={member.user.profilePicture} />
@@ -123,7 +103,8 @@ const Members = () => {
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-1 ml-11 md:ml-0">
+                    {/* Role + Actions */}
+                    <div className="flex items-center space-x-2">
                       <Badge
                         variant={
                           ["admin", "owner"].includes(member.role)
@@ -134,8 +115,23 @@ const Members = () => {
                       >
                         {member.role}
                       </Badge>
+                      <Badge variant="outline">{data.name}</Badge>
 
-                      <Badge variant={"outline"}>{data.name}</Badge>
+                      {canRemove(member.role) && (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          disabled={isRemoving}
+                          onClick={() =>
+                            removeMember({
+                              workspaceId,
+                              memberId: member.user._id,
+                            })
+                          }
+                        >
+                          Remove
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -147,8 +143,8 @@ const Members = () => {
         {/* BOARD VIEW */}
         <TabsContent value="board">
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {filteredMembers.map((member) => (
-              <Card key={member.user._id} className="">
+            {filteredMembers?.map((member) => (
+              <Card key={member.user._id}>
                 <CardContent className="p-6 flex flex-col items-center text-center">
                   <Avatar className="bg-gray-500 size-20 mb-4">
                     <AvatarImage src={member.user.profilePicture} />
@@ -160,7 +156,6 @@ const Members = () => {
                   <h3 className="text-lg font-medium mb-2">
                     {member.user.name}
                   </h3>
-
                   <p className="text-sm text-gray-500 mb-4">
                     {member.user.email}
                   </p>
@@ -171,9 +166,28 @@ const Members = () => {
                         ? "destructive"
                         : "secondary"
                     }
+                    className="capitalize mb-2"
                   >
                     {member.role}
                   </Badge>
+                  <Badge variant="outline">{data.name}</Badge>
+
+                  {canRemove(member.role) && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      disabled={isRemoving}
+                      onClick={() =>
+                        removeMember({
+                          workspaceId,
+                          memberId: member.user._id,
+                        })
+                      }
+                      className="mt-3"
+                    >
+                      Remove
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             ))}

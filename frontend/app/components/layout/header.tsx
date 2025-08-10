@@ -105,7 +105,14 @@ export const Header = ({
             <DropdownMenuTrigger asChild>
               <button className="rounded-full border p-0 w-8 h-8">
                 <Avatar className="w-8 h-8">
-                  <AvatarImage src={user?.profilePicture} alt={user?.name} />
+                  <AvatarImage
+                    src={
+                      user?.profilePicture
+                        ? `${import.meta.env.VITE_FILES_URL}/uploads/avatars/${user.profilePicture}`
+                        : undefined
+                    }
+                    alt={user?.name}
+                  />
                   <AvatarFallback className="bg-primary text-primary-foreground">
                     {user?.name?.charAt(0).toUpperCase()}
                   </AvatarFallback>

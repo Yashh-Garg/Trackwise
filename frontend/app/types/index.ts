@@ -1,27 +1,39 @@
+// =======================
+// User
+// =======================
 export interface User {
   _id: string;
   email: string;
   name: string;
   createdAt: Date;
-  isEmailVerified: boolean;
   updatedAt: Date;
+  isEmailVerified: boolean;
   profilePicture?: string;
 }
 
+// =======================
+// Workspace
+// =======================
 export interface Workspace {
   _id: string;
   name: string;
   description?: string;
-  owner: User | string;
   color: string;
+  owner: User | string; // populated or just ID
   members: {
     user: User;
-    role: "admin" | "member" | "owner" | "viewer";
-    joinedAt: Date;
+    role: "owner" | "member" | "admin" | "viewer";
+    joinedAt: Date | string;
   }[];
+  projects?: Project[];
   createdAt: Date;
   updatedAt: Date;
+  currentUserRole?: "owner" | "member" | "admin" | "viewer"; // computed for logged-in user
 }
+
+// =======================
+// Project
+// =======================
 export enum ProjectStatus {
   PLANNING = "Planning",
   IN_PROGRESS = "In Progress",
@@ -42,25 +54,34 @@ export interface Project {
   tasks: Task[];
   members: {
     user: User;
-    role: "admin" | "member" | "owner" | "viewer";
+    role: "owner" | "member" | "admin" | "viewer";
   }[];
   createdAt: Date;
   updatedAt: Date;
   isArchived: boolean;
 }
+
+// =======================
+// Task
+// =======================
 export type TaskStatus = "To Do" | "In Progress" | "Done";
 export type TaskPriority = "High" | "Medium" | "Low";
-export enum ProjectMemberRole {
-  MANAGER = "manager",
-  CONTRIBUTOR = "contributor",
-  VIEWER = "viewer",
-}
 
 export interface Subtask {
   _id: string;
   title: string;
   completed: boolean;
   createdAt: Date;
+}
+
+export interface Attachment {
+  _id: string;
+  fileName: string;
+  fileUrl: string;
+  fileType: string;
+  fileSize: number;
+  uploadedBy: string;
+  uploadedAt: Date;
 }
 
 export interface Task {
@@ -82,29 +103,20 @@ export interface Task {
   attachments?: Attachment[];
 }
 
-export interface Attachment {
-  fileName: string;
-  fileUrl: string;
-  fileType: string;
-  fileSize: number;
-  uploadedBy: string;
-  uploadedAt: Date;
-  _id: string;
-}
-
+// =======================
+// Member
+// =======================
 export interface MemberProps {
   _id: string;
   user: User;
-  role: "admin" | "member" | "owner" | "viewer";
+  role: "owner" | "member" | "admin" | "viewer";
   joinedAt: Date;
 }
 
-export type ResourceType =
-  | "Task"
-  | "Project"
-  | "Workspace"
-  | "Comment"
-  | "User";
+// =======================
+// Activity Log
+// =======================
+export type ResourceType = "Task" | "Project" | "Workspace" | "Comment" | "User";
 
 export type ActionType =
   | "created_task"
@@ -133,6 +145,9 @@ export interface ActivityLog {
   createdAt: Date;
 }
 
+// =======================
+// Comments
+// =======================
 export interface CommentReaction {
   emoji: string;
   user: User;
@@ -152,6 +167,9 @@ export interface Comment {
   }[];
 }
 
+// =======================
+// Stats / Reports
+// =======================
 export interface StatsCardProps {
   totalProjects: number;
   totalTasks: number;

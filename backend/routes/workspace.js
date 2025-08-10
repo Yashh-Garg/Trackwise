@@ -11,6 +11,7 @@ import {
   inviteUserToWorkspace,
   updateWorkspace,
   deleteWorkspace,
+  removeWorkspaceMember,
 } from "../controllers/workspace.js";
 import {
   inviteMemberSchema,
@@ -87,6 +88,13 @@ router.delete(
   authMiddleware,
   validateRequest({ params: z.object({ workspaceId: z.string() }) }),
   deleteWorkspace
+);
+// Remove member from workspace
+
+router.delete(
+  "/:workspaceId/members/:memberId",
+  authMiddleware,
+  removeWorkspaceMember
 );
 
 export default router;

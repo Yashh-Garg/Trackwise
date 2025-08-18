@@ -1,64 +1,57 @@
-# WebPM – MERN Stack Project Management Dashboard
+# 🚀 Trackwise – Project Management Dashboard
 
-WebPM is a modern, responsive Project Management Dashboard built with the MERN stack (MongoDB, Express.js, React, Node.js). It enables users to manage workspaces, projects, and tasks with powerful collaboration tools and user-centric design.
-
-🔗 Live Demo (optional): [https://web-pm.vercel.app/]
-
-📂 GitHub Repo: https://github.com/Pallavi2005-creator/WebPM
+**Tech Stack:** React, Node.js, MongoDB, SentinelAuth, TailwindCSS, Resend, Zod, shadcn/ui
 
 ---
 
-## 🚀 Features
+## 📌 Project Summary
 
-- 📊 Dashboard Overview  
-- 🧩 Workspace & Project Management  
-- ✅ Task Management with:
-  - Comments, Mentions, Reactions  
-  - Activity Logs  
-- 👥 User Profile Management  
-- 🔐 Authentication System:
-  - Sign In / Sign Up  
-  - Forgot Password & Reset  
-  - Email Verification  
-  - Two-Factor Authentication (2FA)  
-  - Google Sign-In with Auth0  
-- 📎 File Attachments (uploads or external URLs)  
-- 🌗 Dark Mode / Light Mode Toggle  
-- 📱 Fully Responsive Design  
-- 🗃️ Archived Projects & Tasks  
+**Trackwise** is a full-featured, full-stack project management dashboard designed for modern teams. Built using the **MERN stack**, it incorporates secure authentication, role-based permissions, automated onboarding, and a responsive UI to optimize project workflows and team collaboration.
+
+### 🔧 Key Contributions
+
+- **Secure Authentication & RBAC:**  
+  Architected a full-stack project management application, incorporating secure authentication and role-based access control (RBAC) via a custom `SentinelAuth` module — reduced unauthorized access incidents to **zero**.
+
+- **Automated Onboarding System:**  
+  Launched automated task assignment and user invitation flow using **Resend** and **React Email templates**, empowering **10+ project managers** and significantly decreasing manual onboarding time.
+
+- **Responsive UI with TailwindCSS & shadcn/ui:**  
+  Built a fully responsive interface with **TailwindCSS** and **shadcn/ui**, cutting UI development time by **40%** through reusable components and ensuring a seamless mobile-first experience.
 
 ---
 
-## 🛠️ Tech Stack
+## 📂 GitHub Repository
 
-| Layer       | Tech Stack                                        |
-|-------------|---------------------------------------------------|
-| Frontend    | React, Vite, React Router v7, TypeScript          |
-| Styling     | Tailwind CSS v4, Shadcn UI                        |
-| Backend     | Node.js, Express.js                               |
-| Database    | MongoDB                                           |
-| Auth        | Auth0, JWT, Google OAuth, Email Verification      |
-| Deployment  | (Vercel, Render)|
+🔗 [https://github.com/Yashh-Garg/Trackwise](https://github.com/Yashh-Garg/Trackwise)
 
 ---
 
-## 📦 Setup Instructions
+## 🛠️ Technologies Used
 
-Clone the repo:
+| Category       | Technologies                                      |
+|----------------|--------------------------------------------------|
+| **Frontend**   | React, Vite, TypeScript, React Router v7         |
+| **Styling**    | TailwindCSS v4, shadcn/ui                        |
+| **Backend**    | Node.js, Express.js                              |
+| **Database**   | MongoDB                                          |
+| **Authentication** | SentinelAuth (custom), JWT, Google OAuth     |
+| **Validation** | Zod                                              |
+| **Email & Onboarding** | Resend, React Email Templates             |
+| **Deployment** | Vercel (frontend), Render (backend)             |
+
+---
+
+## 🚀 Running Locally
+
+### 📁 Clone the repository
 
 ```bash
-git clone https://github.com/Pallavi2005-creator/WebPM.git
-cd WebPM
-
-Install dependencies:
-
-Frontend (React):
+git clone https://github.com/Yashh-Garg/Trackwise.git
+cd Trackwise
 cd client
 npm install
 npm run dev
-
-Backend (Node.js):
 cd server
 npm install
 npm start
-

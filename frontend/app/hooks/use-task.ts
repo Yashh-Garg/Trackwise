@@ -13,6 +13,14 @@ export const useCreateTaskMutation = () => {
       queryClient.invalidateQueries({
         queryKey: ["project", data.project],
       });
+      // Also invalidate workspace stats to update dashboard
+      queryClient.invalidateQueries({
+        queryKey: ["workspace-stats"],
+      });
+      // Invalidate my-tasks to show new task if assigned
+      queryClient.invalidateQueries({
+        queryKey: ["my-tasks"],
+      });
     },
   });
 };
@@ -53,6 +61,14 @@ export const useUpdateTaskStatusMutation = () => {
       });
       queryClient.invalidateQueries({
         queryKey: ["task-activity", data._id],
+      });
+      // Invalidate project query to update progress
+      queryClient.invalidateQueries({
+        queryKey: ["project", data.project],
+      });
+      // Also invalidate my-tasks to reflect status change
+      queryClient.invalidateQueries({
+        queryKey: ["my-tasks"],
       });
     },
   });

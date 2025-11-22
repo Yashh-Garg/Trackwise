@@ -42,8 +42,28 @@ app.use("/api-v1", routes);
 
 // error middleware
 app.use((err, req, res, next) => {
-  console.log(err.stack);
-  res.status(500).json({ message: "Internal server error" });
+  console.error("=== Error Middleware ===");
+  console.error("Error status:", err.status, err.statusCode);
+  console.error("Error message:", err.message);
+  console.error("Error name:", err.name);
+  
+  // Handle validation errors from zod-express-middleware
+  // zod-express-middleware typically adds errors to req.zodError
+  if (err.status === 400 || err.statusCode === 400 || err.name === 'ValidationError' || err.zodError) {
+    const zodError = err.zodError || err.errors;
+    return res.status(400).json({
+      message: err.message || "Validation error",
+      errors: zodError?.issues || zodError || err.errors,
+    });
+  }
+  
+  if (err.stack) {
+    console.error("Stack:", err.stack);
+  }
+  
+  res.status(err.status || err.statusCode || 500).json({ 
+    message: err.message || "Internal server error" 
+  });
 });
 
 // not found middleware

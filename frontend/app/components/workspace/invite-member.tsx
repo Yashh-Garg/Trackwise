@@ -57,8 +57,14 @@ export const InviteMemberDialog = ({
           onOpenChange(false);
         },
         onError: (error: any) => {
-          toast.error(error.response.data.message);
-          console.log(error);
+          console.error("Invite member error:", error);
+          console.error("Error response:", error.response?.data);
+          const errorMessage = 
+            error.response?.data?.message || 
+            error.response?.data?.error?.message ||
+            error.message || 
+            "Failed to send invitation";
+          toast.error(errorMessage);
         },
       }
     );

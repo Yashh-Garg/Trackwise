@@ -225,7 +225,32 @@ const updateTaskStatus = async (req, res) => {
     const oldStatus = task.status;
 
     task.status = status;
+    
+    // Update completedAt if status is Done
+    if (status === "Done" && !task.completedAt) {
+      task.completedAt = new Date();
+    } else if (status !== "Done" && task.completedAt) {
+      task.completedAt = undefined;
+    }
+    
     await task.save();
+
+    // Update project progress automatically
+    const projectTasks = await Task.find({ project: task.project, isArchived: false });
+    const totalTasks = projectTasks.length;
+    const completedTasks = projectTasks.filter(t => t.status === "Done").length;
+    const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    
+    project.progress = progress;
+    
+    // Auto-update project status based on progress
+    if (progress === 100 && project.status !== "Completed") {
+      project.status = "Completed";
+    } else if (progress > 0 && progress < 100 && project.status === "Planning") {
+      project.status = "In Progress";
+    }
+    
+    await project.save();
 
     // record activity
     await recordActivity(req.user._id, "updated_task", "Task", taskId, {

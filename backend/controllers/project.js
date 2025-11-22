@@ -28,6 +28,21 @@ const createProject = async (req, res) => {
 
     const tagArray = tags ? tags.split(",") : [];
 
+    // Ensure the creator is included in members if not already present
+    const creatorMember = {
+      user: req.user._id,
+      role: "manager",
+    };
+    
+    const membersList = members || [];
+    const isCreatorInMembers = membersList.some(
+      (member) => member.user.toString() === req.user._id.toString()
+    );
+    
+    const finalMembers = isCreatorInMembers 
+      ? membersList 
+      : [creatorMember, ...membersList];
+
     const newProject = await Project.create({
       title,
       description,
@@ -36,7 +51,7 @@ const createProject = async (req, res) => {
       dueDate,
       tags: tagArray,
       workspace: workspaceId,
-      members,
+      members: finalMembers,
       createdBy: req.user._id,
     });
 
@@ -45,7 +60,7 @@ const createProject = async (req, res) => {
 
     return res.status(201).json(newProject);
   } catch (error) {
-    console.log(error);
+    console.error("Error creating project:", error);
     return res.status(500).json({
       message: "Internal server error",
     });
@@ -64,11 +79,18 @@ const getProjectDetails = async (req, res) => {
       });
     }
 
-    const isMember = project.members.some(
-      (member) => member.user.toString() === req.user._id.toString()
-    );
+    // Check membership - handle both populated and non-populated member.user
+    const isMember = project.members.some((member) => {
+      const memberUserId = member.user?._id 
+        ? member.user._id.toString() 
+        : member.user?.toString();
+      return memberUserId === req.user._id.toString();
+    });
 
-    if (!isMember) {
+    // Also allow the creator to access their own project
+    const isCreator = project.createdBy.toString() === req.user._id.toString();
+
+    if (!isMember && !isCreator) {
       return res.status(403).json({
         message: "You are not a member of this project",
       });
@@ -76,7 +98,7 @@ const getProjectDetails = async (req, res) => {
 
     res.status(200).json(project);
   } catch (error) {
-    console.log(error);
+    console.error("Error getting project details:", error);
     return res.status(500).json({
       message: "Internal server error",
     });
@@ -94,11 +116,18 @@ const getProjectTasks = async (req, res) => {
       });
     }
 
-    const isMember = project.members.some(
-      (member) => member.user._id.toString() === req.user._id.toString()
-    );
+    // Check membership - handle both populated and non-populated member.user
+    const isMember = project.members.some((member) => {
+      const memberUserId = member.user?._id 
+        ? member.user._id.toString() 
+        : member.user?.toString();
+      return memberUserId === req.user._id.toString();
+    });
 
-    if (!isMember) {
+    // Also allow the creator to access their own project
+    const isCreator = project.createdBy.toString() === req.user._id.toString();
+
+    if (!isMember && !isCreator) {
       return res.status(403).json({
         message: "You are not a member of this project",
       });
@@ -116,7 +145,7 @@ const getProjectTasks = async (req, res) => {
       tasks,
     });
   } catch (error) {
-    console.log(error);
+    console.error("Error getting project tasks:", error);
     return res.status(500).json({
       message: "Internal server error",
     });

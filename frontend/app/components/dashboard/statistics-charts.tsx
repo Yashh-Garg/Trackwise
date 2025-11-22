@@ -73,6 +73,16 @@ export const StatisticsCharts = ({
     total: { color: "#18181b", label: "Total Tasks" },
   };
 
+  // Check if there's any data to display
+  // Show charts even with zero data, but with a helpful message
+  const hasTaskTrendsData = taskTrendsData && taskTrendsData.length > 0;
+  const hasProjectStatusData = projectStatusData && projectStatusData.length > 0 && projectStatusData.some(d => d.value > 0);
+  const hasTaskPriorityData = taskPriorityData && taskPriorityData.length > 0 && taskPriorityData.some(d => d.value > 0);
+  const hasProductivityData = workspaceProductivityData && workspaceProductivityData.length > 0 && workspaceProductivityData.some(d => d.total > 0);
+  
+  // Check if there's actual task activity
+  const hasTaskActivity = taskTrendsData && taskTrendsData.some(d => d.completed > 0 || d.inProgress > 0 || d.todo > 0);
+
   return (
     <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mb-8">
       {/* Task Trends Chart */}
@@ -85,52 +95,78 @@ export const StatisticsCharts = ({
           <ChartLine className="size-5 text-muted-foreground" />
         </CardHeader>
         <CardContent className="w-full overflow-x-auto md:overflow-x-hidden">
-          <div className="min-w-[350px]">
-            <ChartContainer
-              className="h-[300px]"
-              config={taskTrendsConfig}
-            >
-              <LineChart data={taskTrendsData}>
-                <XAxis
-                  dataKey="name"
-                  stroke="#888888"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  stroke="#888888"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Line
-                  type="monotone"
-                  dataKey="completed"
-                  stroke={taskTrendsConfig.completed.color}
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="inProgress"
-                  stroke={taskTrendsConfig.inProgress.color}
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="todo"
-                  stroke={taskTrendsConfig.todo.color}
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
-                />
-                <ChartLegend content={(props) => <ChartLegendContent {...props} />} />
-              </LineChart>
+          {!hasTaskTrendsData ? (
+            <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+              <p className="text-sm">No task trends data available</p>
+            </div>
+          ) : (
+            <div className="min-w-[350px]">
+              <ChartContainer
+                className="h-[300px]"
+                config={taskTrendsConfig}
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart 
+                    data={taskTrendsData}
+                    margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
+                  >
+                    <XAxis
+                      dataKey="name"
+                      stroke="hsl(var(--muted-foreground))"
+                      fontSize={11}
+                      tickLine={false}
+                      axisLine={false}
+                      tickMargin={8}
+                    />
+                    <YAxis
+                      stroke="hsl(var(--muted-foreground))"
+                      fontSize={11}
+                      tickLine={false}
+                      axisLine={false}
+                      tickMargin={8}
+                    />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Line
+                      type="monotone"
+                      dataKey="completed"
+                      stroke={taskTrendsConfig.completed.color}
+                      strokeWidth={2.5}
+                      dot={{ r: 4, fill: taskTrendsConfig.completed.color }}
+                      activeDot={{ r: 6 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="inProgress"
+                      stroke={taskTrendsConfig.inProgress.color}
+                      strokeWidth={2.5}
+                      dot={{ r: 4, fill: taskTrendsConfig.inProgress.color }}
+                      activeDot={{ r: 6 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="todo"
+                      stroke={taskTrendsConfig.todo.color}
+                      strokeWidth={2.5}
+                      dot={{ r: 4, fill: taskTrendsConfig.todo.color }}
+                      activeDot={{ r: 6 }}
+                    />
+                    <ChartLegend 
+                      content={(props) => <ChartLegendContent {...props} />}
+                      wrapperStyle={{ paddingTop: '10px' }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
             </ChartContainer>
+            {!hasTaskActivity && (
+              <div className="mt-4 text-center">
+                <p className="text-xs text-muted-foreground">
+                  No task activity in the last 7 days. Create and update tasks to see trends.
+                </p>
+              </div>
+            )}
           </div>
+          )}
         </CardContent>
       </Card>
 
@@ -146,33 +182,46 @@ export const StatisticsCharts = ({
           <ChartPie className="size-5 text-muted-foreground" />
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center p-6">
-          <ChartContainer
-            className="h-[300px] w-full"
-            config={projectStatusConfig}
-          >
-            <PieChart width="100%" height="100%">
-              <Pie
-                data={projectStatusData}
-                cx="50%"
-                cy="50%"
-                dataKey="value"
-                nameKey="name"
-                innerRadius={60}
-                outerRadius={80}
-                paddingAngle={2}
-                label={({ name, percent }) =>
-                  `${name} (${((percent ?? 0) * 100).toFixed(0)}%)`
-                }
-                labelLine={false}
-              >
-                {projectStatusData?.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <ChartTooltip content={<ChartTooltipContent />} />
-              <ChartLegend content={(props) => <ChartLegendContent {...props} />} />
-            </PieChart>
+          {!hasProjectStatusData ? (
+            <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+              <p className="text-sm">No projects yet</p>
+            </div>
+          ) : (
+            <ChartContainer
+              className="h-[300px] w-full"
+              config={projectStatusConfig}
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={projectStatusData}
+                    cx="50%"
+                    cy="45%"
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={50}
+                    outerRadius={70}
+                    paddingAngle={3}
+                  >
+                    {projectStatusData?.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <ChartTooltip 
+                    content={<ChartTooltipContent />}
+                    formatter={(value: any, name: string) => [
+                      `${value} (${((value / projectStatusData.reduce((acc, d) => acc + d.value, 0)) * 100).toFixed(0)}%)`,
+                      name
+                    ]}
+                  />
+                  <ChartLegend 
+                    content={(props) => <ChartLegendContent {...props} />}
+                    wrapperStyle={{ paddingTop: '20px' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
           </ChartContainer>
+          )}
         </CardContent>
       </Card>
 
@@ -187,33 +236,46 @@ export const StatisticsCharts = ({
           </div>
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center p-6">
-          <ChartContainer
-            className="h-[300px] w-full"
-            config={taskPriorityConfig}
-          >
-            <PieChart width="100%" height="100%">
-              <Pie
-                data={taskPriorityData}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={80}
-                paddingAngle={2}
-                dataKey="value"
-                nameKey="name"
-                label={({ name, percent }) =>
-                  `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
-                }
-                labelLine={false}
-              >
-                {taskPriorityData?.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <ChartTooltip content={<ChartTooltipContent />} />
-              <ChartLegend content={(props) => <ChartLegendContent {...props} />} />
-            </PieChart>
+          {!hasTaskPriorityData ? (
+            <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+              <p className="text-sm">No tasks yet</p>
+            </div>
+          ) : (
+            <ChartContainer
+              className="h-[300px] w-full"
+              config={taskPriorityConfig}
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={taskPriorityData}
+                    cx="50%"
+                    cy="45%"
+                    innerRadius={50}
+                    outerRadius={70}
+                    paddingAngle={3}
+                    dataKey="value"
+                    nameKey="name"
+                  >
+                    {taskPriorityData?.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <ChartTooltip 
+                    content={<ChartTooltipContent />}
+                    formatter={(value: any, name: string) => [
+                      `${value} (${((value / taskPriorityData.reduce((acc, d) => acc + d.value, 0)) * 100).toFixed(0)}%)`,
+                      name
+                    ]}
+                  />
+                  <ChartLegend 
+                    content={(props) => <ChartLegendContent {...props} />}
+                    wrapperStyle={{ paddingTop: '20px' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
           </ChartContainer>
+          )}
         </CardContent>
       </Card>
 
@@ -229,47 +291,65 @@ export const StatisticsCharts = ({
           <ChartBarBig className="h-5 w-5 text-muted-foreground" />
         </CardHeader>
         <CardContent className="w-full overflow-x-auto md:overflow-x-hidden">
-          <div className="min-w-[350px]">
-            <ChartContainer
-              className="h-[300px]"
-              config={workspaceProductivityConfig}
-            >
-              <BarChart
-                data={workspaceProductivityData}
-                barGap={0}
-                barSize={20}
+          {!hasProductivityData ? (
+            <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+              <p className="text-sm">No productivity data available</p>
+            </div>
+          ) : (
+            <div className="min-w-[350px]">
+              <ChartContainer
+                className="h-[300px]"
+                config={workspaceProductivityConfig}
               >
-                <XAxis
-                  dataKey="name"
-                  stroke="#888888"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  stroke="#888888"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar
-                  dataKey="total"
-                  fill={workspaceProductivityConfig.total.color}
-                  radius={[4, 4, 0, 0]}
-                  name="Total Tasks"
-                />
-                <Bar
-                  dataKey="completed"
-                  fill={workspaceProductivityConfig.completed.color}
-                  radius={[4, 4, 0, 0]}
-                  name="Completed Tasks"
-                />
-                <ChartLegend content={(props) => <ChartLegendContent {...props} />} />
-              </BarChart>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={workspaceProductivityData}
+                    barGap={4}
+                    barCategoryGap="20%"
+                    margin={{ top: 5, right: 10, left: 0, bottom: 40 }}
+                  >
+                    <XAxis
+                      dataKey="name"
+                      stroke="hsl(var(--muted-foreground))"
+                      fontSize={11}
+                      tickLine={false}
+                      axisLine={false}
+                      angle={-45}
+                      textAnchor="end"
+                      height={60}
+                      tickMargin={8}
+                      interval={0}
+                    />
+                    <YAxis
+                      stroke="hsl(var(--muted-foreground))"
+                      fontSize={11}
+                      tickLine={false}
+                      axisLine={false}
+                      tickMargin={8}
+                    />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Bar
+                      dataKey="total"
+                      fill={workspaceProductivityConfig.total.color}
+                      radius={[4, 4, 0, 0]}
+                      name="Total Tasks"
+                    />
+                    <Bar
+                      dataKey="completed"
+                      fill={workspaceProductivityConfig.completed.color}
+                      radius={[4, 4, 0, 0]}
+                      name="Completed Tasks"
+                    />
+                    <ChartLegend 
+                      content={(props) => <ChartLegendContent {...props} />}
+                      wrapperStyle={{ paddingTop: '10px' }}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
             </ChartContainer>
           </div>
+          )}
         </CardContent>
       </Card>
     </div>

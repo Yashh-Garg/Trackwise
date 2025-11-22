@@ -1,5 +1,5 @@
 import type { User } from "@/types";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { queryClient } from "./react-query-provider";
 import { useLocation, useNavigate } from "react-router";
 import { publicRoutes } from "@/lib";
@@ -22,6 +22,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const currentPath = useLocation().pathname;
   const isPublicRoute = publicRoutes.includes(currentPath);
+
+  const login = useCallback(async (data: any) => {
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(data.user));
+
+    setUser(data.user);
+    setIsAuthenticated(true);
+  }, []);
 
   // check if user is authenticated
   useEffect(() => {
@@ -48,26 +56,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     checkAuth();
-  }, []);
+  }, [isPublicRoute, navigate]);
 
-  useEffect(() => {
-    const handleLogout = () => {
-      logout();
-      navigate("/sign-in");
-    };
-    window.addEventListener("force-logout", handleLogout);
-    return () => window.removeEventListener("force-logout", handleLogout);
-  }, []);
-
-  const login = async (data: any) => {
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
-
-    setUser(data.user);
-    setIsAuthenticated(true);
-  };
-
-  const logout = async () => {
+  const logout = useCallback(async () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
 
@@ -75,7 +66,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setIsAuthenticated(false);
 
     queryClient.clear();
-  };
+  }, []);
+
+  useEffect(() => {
+    const handleLogout = () => {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      setUser(null);
+      setIsAuthenticated(false);
+      queryClient.clear();
+      navigate("/sign-in");
+    };
+    window.addEventListener("force-logout", handleLogout);
+    return () => window.removeEventListener("force-logout", handleLogout);
+  }, [navigate]);
 
   const values = {
     user,

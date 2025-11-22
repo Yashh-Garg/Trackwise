@@ -27,8 +27,9 @@ export const SidebarComponent = ({
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   // Get workspaceId from URL params
-  const { workspaceId } = useParams<{ workspaceId: string }>();
+  const params = useParams<{ workspaceId?: string }>();
   const location = useLocation();
+  const workspaceId = params?.workspaceId;
 
   // Check if we're in a workspace context (either from currentWorkspace or URL)
   const activeWorkspaceId = currentWorkspace?.id || workspaceId;

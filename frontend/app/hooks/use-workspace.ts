@@ -98,7 +98,9 @@ export const useInviteMemberMutation = () => {
       if (!data.workspaceId || data.workspaceId === "null" || data.workspaceId === "undefined") {
         throw new Error("Invalid workspace ID");
       }
-      return postData(`/workspaces/${data.workspaceId}/invite-member`, data);
+      // Only send email and role in the body, workspaceId goes in the URL
+      const { workspaceId, ...bodyData } = data;
+      return postData(`/workspaces/${workspaceId}/invite-member`, bodyData);
     },
   });
 };

@@ -1,40 +1,51 @@
-import { useTheme } from "./theme-provider" // Adjust path as needed
-import { Moon, Sun, Monitor } from "lucide-react" // If you have lucide-react installed
+import { useTheme } from "./theme-provider"
+import { Moon, Sun } from "lucide-react"
+import { Button } from "./ui/button"
+import { cn } from "@/lib/utils"
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
 
-  const toggleTheme = () => {
-    if (theme === "light") {
-      setTheme("dark")
-    } else if (theme === "dark") {
-      setTheme("system")
-    } else {
-      setTheme("light")
+  // Get the actual theme being used (handle system theme)
+  const getActualTheme = () => {
+    if (theme === "system") {
+      if (typeof window !== "undefined") {
+        return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+      }
+      return "light"
     }
+    return theme
   }
 
-  const getIcon = () => {
-    switch (theme) {
-      case "light":
-        return <Sun className="h-4 w-4" />
-      case "dark":
-        return <Moon className="h-4 w-4" />
-      case "system":
-        return <Monitor className="h-4 w-4" />
-      default:
-        return <Sun className="h-4 w-4" />
-    }
+  const actualTheme = getActualTheme()
+
+  const toggleTheme = () => {
+    // Simple toggle between light and dark
+    setTheme(actualTheme === "light" ? "dark" : "light")
   }
 
   return (
-    <button
+    <Button
+      variant="ghost"
+      size="icon"
       onClick={toggleTheme}
-      className="inline-flex items-center justify-center rounded-md p-2 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
-      aria-label={`Switch to ${theme === "light" ? "dark" : theme === "dark" ? "system" : "light"} theme`}
+      className={cn(
+        "relative h-9 w-9 transition-all duration-200",
+        "hover:bg-muted/80",
+        "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+      )}
+      aria-label={`Switch to ${actualTheme === "light" ? "dark" : "light"} theme`}
     >
-      {getIcon()}
-    </button>
+      <Sun className={cn(
+        "h-4 w-4 transition-all duration-300 absolute",
+        actualTheme === "dark" ? "rotate-0 scale-100 opacity-100" : "rotate-90 scale-0 opacity-0"
+      )} />
+      <Moon className={cn(
+        "h-4 w-4 transition-all duration-300 absolute",
+        actualTheme === "light" ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-0 opacity-0"
+      )} />
+      <span className="sr-only">Toggle theme</span>
+    </Button>
   )
 }
 

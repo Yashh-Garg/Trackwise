@@ -5,7 +5,11 @@ const workspaceInviteSchema = new mongoose.Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: false, // Make optional for invites to non-existing users
+    },
+    email: {
+      type: String,
+      required: false, // Will be set if user doesn't exist yet
     },
     workspaceId: {
       type: mongoose.Schema.Types.ObjectId,

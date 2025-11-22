@@ -62,14 +62,14 @@ router.post(
 // Get all workspaces
 router.get("/", authMiddleware, getWorkspaces);
 
-// Get workspace details
-router.get("/:workspaceId", authMiddleware, getWorkspaceDetails);
-
-// Get workspace projects
+// Get workspace projects (must come before /:workspaceId to avoid route conflicts)
 router.get("/:workspaceId/projects", authMiddleware, getWorkspaceProjects);
 
-// Get workspace stats
+// Get workspace stats (must come before /:workspaceId to avoid route conflicts)
 router.get("/:workspaceId/stats", authMiddleware, getWorkspaceStats);
+
+// Get workspace details (must come after more specific routes)
+router.get("/:workspaceId", authMiddleware, getWorkspaceDetails);
 
 // Update workspace
 router.put(

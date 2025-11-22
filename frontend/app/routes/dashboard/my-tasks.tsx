@@ -115,11 +115,7 @@ const MyTasks = () => {
       <div className="flex items-start md:items-center justify-between">
         <h1 className="text-2xl font-bold">My Tasks</h1>
 
-        <div
-          className="flex flex-col items-start md:flex-row md"
-          itemScope
-          gap-2
-        >
+        <div className="flex flex-col items-start md:flex-row gap-2">
           <Button
             variant={"outline"}
             onClick={() =>
@@ -254,8 +250,20 @@ const MyTasks = () => {
                 ))}
 
                 {sortedTasks?.length === 0 && (
-                  <div className="p-4 text-center text-sm text-muted-foreground">
-                    No tasks found
+                  <div className="p-8 text-center">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="rounded-full bg-muted p-4">
+                        <CheckCircle className="size-8 text-muted-foreground" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">
+                          {search ? "No tasks match your search" : "No tasks assigned to you"}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {search ? "Try adjusting your search query" : "Tasks assigned to you will appear here"}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -311,8 +319,8 @@ const MyTasks = () => {
                 ))}
 
                 {todoTasks?.length === 0 && (
-                  <div className="p-4 text-center text-sm text-muted-foreground">
-                    No tasks found
+                  <div className="p-8 text-center">
+                    <p className="text-sm text-muted-foreground">No tasks in this column</p>
                   </div>
                 )}
               </CardContent>
@@ -363,8 +371,8 @@ const MyTasks = () => {
                 ))}
 
                 {inProgressTasks?.length === 0 && (
-                  <div className="p-4 text-center text-sm text-muted-foreground">
-                    No tasks found
+                  <div className="p-8 text-center">
+                    <p className="text-sm text-muted-foreground">No tasks in this column</p>
                   </div>
                 )}
               </CardContent>
@@ -415,8 +423,8 @@ const MyTasks = () => {
                 ))}
 
                 {doneTasks?.length === 0 && (
-                  <div className="p-4 text-center text-sm text-muted-foreground">
-                    No tasks found
+                  <div className="p-8 text-center">
+                    <p className="text-sm text-muted-foreground">No tasks in this column</p>
                   </div>
                 )}
               </CardContent>

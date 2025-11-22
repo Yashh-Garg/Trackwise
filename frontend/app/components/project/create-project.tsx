@@ -37,6 +37,7 @@ import { Calendar } from "../ui/calendar";
 import { Checkbox } from "../ui/checkbox";
 import { UseCreateProject } from "@/hooks/use-project";
 import { toast } from "sonner";
+import { useNavigate } from "react-router";
 
 interface CreateProjectDialogProps {
   isOpen: boolean;
@@ -66,6 +67,7 @@ export const CreateProjectDialog = ({
     },
   });
   const { mutate, isPending } = UseCreateProject();
+  const navigate = useNavigate();
 
   const onSubmit = (values: CreateProjectFormData) => {
     if (!workspaceId) return;
@@ -76,10 +78,14 @@ export const CreateProjectDialog = ({
         workspaceId,
       },
       {
-        onSuccess: () => {
+        onSuccess: (data: any) => {
           toast.success("Project created successfully");
           form.reset();
           onOpenChange(false);
+          // Navigate to the newly created project
+          if (data?._id) {
+            navigate(`/workspaces/${workspaceId}/projects/${data._id}`);
+          }
         },
         onError: (error: any) => {
           const errorMessage = error.response.data.message;

@@ -103,7 +103,7 @@ const createWorkspace = async (req, res) => {
 
     res.status(201).json(workspace);
   } catch (error) {
-    console.log(error);
+    console.error("Error creating workspace:", error);
     res.status(500).json({
       message: "Internal server error",
     });
@@ -118,7 +118,7 @@ const getWorkspaces = async (req, res) => {
 
     res.status(200).json(workspaces);
   } catch (error) {
-    console.log(error);
+    console.error("Error getting workspaces:", error);
     res.status(500).json({
       message: "Internal server error",
     });
@@ -129,9 +129,10 @@ const getWorkspaceDetails = async (req, res) => {
   try {
     const { workspaceId } = req.params;
 
-    const workspace = await Workspace.findById({
-      _id: workspaceId,
-    }).populate("members.user", "name email profilePicture");
+    const workspace = await Workspace.findById(workspaceId).populate(
+      "members.user",
+      "name email profilePicture"
+    );
 
     if (!workspace) {
       return res.status(404).json({
@@ -141,7 +142,7 @@ const getWorkspaceDetails = async (req, res) => {
 
     res.status(200).json(workspace);
   } catch (error) {
-    console.log(error);
+    console.error("Error getting workspace details:", error);
     res.status(500).json({
       message: "Internal server error",
     });
@@ -173,7 +174,7 @@ const getWorkspaceProjects = async (req, res) => {
 
     res.status(200).json({ projects, workspace });
   } catch (error) {
-    console.log(error);
+    console.error("Error getting workspace projects:", error);
     res.status(500).json({
       message: "Internal server error",
     });
@@ -259,13 +260,13 @@ const getWorkspaceStats = async (req, res) => {
     });
 
     const taskTrendsData = [
-      { name: "Sun", completed: 0, inProgress: 0, toDo: 0 },
-      { name: "Mon", completed: 0, inProgress: 0, toDo: 0 },
-      { name: "Tue", completed: 0, inProgress: 0, toDo: 0 },
-      { name: "Wed", completed: 0, inProgress: 0, toDo: 0 },
-      { name: "Thu", completed: 0, inProgress: 0, toDo: 0 },
-      { name: "Fri", completed: 0, inProgress: 0, toDo: 0 },
-      { name: "Sat", completed: 0, inProgress: 0, toDo: 0 },
+      { name: "Sun", completed: 0, inProgress: 0, todo: 0 },
+      { name: "Mon", completed: 0, inProgress: 0, todo: 0 },
+      { name: "Tue", completed: 0, inProgress: 0, todo: 0 },
+      { name: "Wed", completed: 0, inProgress: 0, todo: 0 },
+      { name: "Thu", completed: 0, inProgress: 0, todo: 0 },
+      { name: "Fri", completed: 0, inProgress: 0, todo: 0 },
+      { name: "Sat", completed: 0, inProgress: 0, todo: 0 },
     ];
 
     // get last 7 days tasks date
@@ -303,7 +304,7 @@ const getWorkspaceStats = async (req, res) => {
                 dayData.inProgress++;
                 break;
               case "To Do":
-                dayData.toDo++;
+                dayData.todo++;
                 break;
             }
           }
@@ -390,7 +391,7 @@ const getWorkspaceStats = async (req, res) => {
       recentProjects: projects.slice(0, 5),
     });
   } catch (error) {
-    console.log(error);
+    console.error("Error getting workspace stats:", error);
     res.status(500).json({
       message: "Internal server error",
     });
@@ -420,51 +421,57 @@ const inviteUserToWorkspace = async (req, res) => {
       });
     }
 
-    const existingUser = await User.findOne({ email });
+    // Check if user exists
+    let existingUser = await User.findOne({ email });
+    let userId = existingUser?._id;
 
+    // If user doesn't exist, we'll create the invite without a user reference
+    // The user will be associated when they sign up with this email
     if (!existingUser) {
-      return res.status(400).json({
-        message: "User not found",
+      console.log(`User with email ${email} not found. Creating invite without user reference.`);
+      
+      // Delete any existing invites for this email (expired or not) to allow re-inviting
+      await WorkspaceInvite.deleteMany({
+        email: email,
+        workspaceId: workspaceId,
+      });
+    } else {
+      // Check if user is already a member
+      const isMember = workspace.members.some(
+        (member) => member.user.toString() === existingUser._id.toString()
+      );
+
+      if (isMember) {
+        return res.status(400).json({
+          message: "User already a member of this workspace",
+        });
+      }
+
+      // Delete any existing invites for this user or email to allow re-inviting
+      await WorkspaceInvite.deleteMany({
+        $or: [
+          { user: existingUser._id, workspaceId: workspaceId },
+          { email: email, workspaceId: workspaceId },
+        ],
       });
     }
 
-    const isMember = workspace.members.some(
-      (member) => member.user.toString() === existingUser._id.toString()
-    );
-
-    if (isMember) {
-      return res.status(400).json({
-        message: "User already a member of this workspace",
-      });
-    }
-
-    const isInvited = await WorkspaceInvite.findOne({
-      user: existingUser._id,
-      workspaceId: workspaceId,
-    });
-
-    if (isInvited && isInvited.expiresAt > new Date()) {
-      return res.status(400).json({
-        message: "User already invited to this workspace",
-      });
-    }
-
-    if (isInvited && isInvited.expiresAt < new Date()) {
-      await WorkspaceInvite.deleteOne({ _id: isInvited._id });
-    }
-
+    // Generate invite token
     const inviteToken = jwt.sign(
       {
-        user: existingUser._id,
+        email: email,
         workspaceId: workspaceId,
         role: role || "member",
+        ...(userId && { user: userId }),
       },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
+    // Create invite - if user exists, reference them; if not, store email for later
     await WorkspaceInvite.create({
-      user: existingUser._id,
+      ...(userId && { user: userId }),
+      email: email, // Store email so we can match it when user signs up
       workspaceId: workspaceId,
       token: inviteToken,
       role: role || "member",
@@ -488,7 +495,7 @@ const inviteUserToWorkspace = async (req, res) => {
       message: "Invitation sent successfully",
     });
   } catch (error) {
-    console.log(error);
+    console.error("Error inviting user to workspace:", error);
     res.status(500).json({
       message: "Internal server error",
     });
@@ -539,7 +546,7 @@ const acceptGenerateInvite = async (req, res) => {
       message: "Invitation accepted successfully",
     });
   } catch (error) {
-    console.log(error);
+    console.error("Error accepting generate invite:", error);
     res.status(500).json({
       message: "Internal server error",
     });
@@ -549,10 +556,11 @@ const acceptGenerateInvite = async (req, res) => {
 const acceptInviteByToken = async (req, res) => {
   try {
     const { token } = req.body;
+    const currentUser = req.user; // User from auth middleware
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    const { user, workspaceId, role } = decoded;
+    const { user: tokenUserId, email: tokenEmail, workspaceId, role } = decoded;
 
     const workspace = await Workspace.findById(workspaceId);
 
@@ -562,8 +570,13 @@ const acceptInviteByToken = async (req, res) => {
       });
     }
 
+    // Determine which user ID to use
+    // If token has user ID, use it; otherwise use the current authenticated user
+    const userId = tokenUserId || currentUser._id;
+
+    // Check if user is already a member
     const isMember = workspace.members.some(
-      (member) => member.user.toString() === user.toString()
+      (member) => member.user.toString() === userId.toString()
     );
 
     if (isMember) {
@@ -572,14 +585,28 @@ const acceptInviteByToken = async (req, res) => {
       });
     }
 
-    const inviteInfo = await WorkspaceInvite.findOne({
-      user: user,
-      workspaceId: workspaceId,
-    });
+    // Find invite by token email (if present), user ID, or current user email
+    const inviteQuery = {
+      $or: [
+        ...(tokenEmail ? [{ email: tokenEmail, workspaceId: workspaceId }] : []),
+        { user: userId, workspaceId: workspaceId },
+        { email: currentUser.email, workspaceId: workspaceId },
+      ],
+    };
+    
+    const inviteInfo = await WorkspaceInvite.findOne(inviteQuery);
 
     if (!inviteInfo) {
       return res.status(404).json({
         message: "Invitation not found",
+      });
+    }
+
+    // If invite has an email (invited to non-existing user), verify current user's email matches
+    // This ensures the user signed up with the email that was invited
+    if (inviteInfo.email && inviteInfo.email.toLowerCase() !== currentUser.email.toLowerCase()) {
+      return res.status(403).json({
+        message: "This invitation is for a different email address. Please sign in with the email address that was invited.",
       });
     }
 
@@ -589,9 +616,15 @@ const acceptInviteByToken = async (req, res) => {
       });
     }
 
+    // Update invite with user ID if it was created for a non-existing user
+    if (!inviteInfo.user && userId) {
+      inviteInfo.user = userId;
+      await inviteInfo.save();
+    }
+
     workspace.members.push({
-      user: user,
-      role: role || "member",
+      user: userId,
+      role: role || inviteInfo.role || "member",
       joinedAt: new Date(),
     });
 
@@ -599,7 +632,7 @@ const acceptInviteByToken = async (req, res) => {
 
     await Promise.all([
       WorkspaceInvite.deleteOne({ _id: inviteInfo._id }),
-      recordActivity(user, "joined_workspace", "Workspace", workspaceId, {
+      recordActivity(userId, "joined_workspace", "Workspace", workspaceId, {
         description: `Joined ${workspace.name} workspace`,
       }),
     ]);
@@ -608,9 +641,10 @@ const acceptInviteByToken = async (req, res) => {
       message: "Invitation accepted successfully",
     });
   } catch (error) {
-    console.log(error);
+    console.error("Error accepting invite by token:", error);
     res.status(500).json({
       message: "Internal server error",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
 };
@@ -674,7 +708,7 @@ const updateWorkspace = async (req, res) => {
       workspace: updatedWorkspace,
     });
   } catch (error) {
-    console.log(error);
+    console.error("Error updating workspace:", error);
     res.status(500).json({
       message: "Internal server error",
     });
@@ -742,7 +776,7 @@ const deleteWorkspace = async (req, res) => {
       message: "Workspace deleted successfully",
     });
   } catch (error) {
-    console.log(error);
+    console.error("Error deleting workspace:", error);
     res.status(500).json({
       message: "Internal server error",
     });

@@ -17,18 +17,32 @@ const WorkspaceDetails = () => {
     return <div>No workspace found</div>;
   }
 
-  const { data, isLoading } = useGetWorkspaceQuery(workspaceId) as {
+  const { data, isLoading, isError } = useGetWorkspaceQuery(workspaceId) as {
     data: {
       workspace: Workspace;
       projects: Project[];
-    };
+    } | undefined;
     isLoading: boolean;
+    isError: boolean;
   };
 
   if (isLoading) {
     return (
       <div>
         <Loader />
+      </div>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <p className="text-lg font-semibold">Failed to load workspace</p>
+          <p className="text-sm text-muted-foreground">
+            Please try refreshing the page
+          </p>
+        </div>
       </div>
     );
   }

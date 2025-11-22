@@ -23,7 +23,7 @@ const Dashboard = () => {
   }, [searchParams]);
   // const workspaceId = searchParams.get("workspaceId");
 
-  const { data, isPending } = useGetWorkspaceStatsQuery(workspaceId!) as {
+  const { data, isPending } = useGetWorkspaceStatsQuery(workspaceId || "") as {
     data: {
       stats: StatsCardProps;
       taskTrendsData: TaskTrendsData[];

@@ -3,6 +3,13 @@ import User from "../models/user.js";
 
 const authMiddleware = async (req, res, next) => {
   try {
+    // Check if authorization header exists
+    if (!req.headers.authorization) {
+      return res.status(401).json({
+        message: "Unauthorized",
+      });
+    }
+
     const token = req.headers.authorization.split(" ")[1]; //Bearer dhghjhdkjfg
 
     if (!token) {
@@ -23,9 +30,9 @@ const authMiddleware = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      message: "Internal server error",
+    console.error("Auth middleware error:", error);
+    res.status(401).json({
+      message: "Unauthorized",
     });
   }
 };

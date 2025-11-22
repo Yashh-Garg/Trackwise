@@ -469,11 +469,6 @@ Built with ❤️ by [Your Name]
 - UI components from Radix UI
 - Icons from Lucide React
 
-## 📞 Support
-
-For support, email support@trackwise.com or open an issue in the repository.
-
----
 
 **Made with ❤️ for better project management**
 

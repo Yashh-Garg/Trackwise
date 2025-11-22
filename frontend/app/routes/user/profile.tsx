@@ -218,7 +218,7 @@ const getImageUrl = (imagePath: string | undefined) => {
           <h1 className="text-2xl font-semibold tracking-tight">Profile Settings</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Manage your account settings and preferences
-          </p>
+        </p>
         </div>
       </div>
 
@@ -253,18 +253,18 @@ const getImageUrl = (imagePath: string | undefined) => {
 </Avatar> */}
                 <div className="relative">
                   <Avatar className="h-24 w-24 ring-2 ring-border/50 ring-offset-2 ring-offset-background">
-                    <AvatarImage
-                      src={
-                        getImageUrl(profileForm.watch("profilePicture")) ||
-                        user?.profilePicture
-                      }
-                      alt={user?.name}
+                  <AvatarImage
+                    src={
+                     getImageUrl(profileForm.watch("profilePicture")) ||
+                      user?.profilePicture
+                    }
+                    alt={user?.name}
                       className="object-cover"
-                    />
+                  />
                     <AvatarFallback className="text-2xl font-semibold bg-primary text-primary-foreground">
                       {user?.name?.charAt(0).toUpperCase() || "U"}
-                    </AvatarFallback>
-                  </Avatar>
+                  </AvatarFallback>
+                </Avatar> 
                   {uploading && (
                     <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-full">
                       <Loader2 className="h-5 w-5 animate-spin text-primary" />
@@ -272,7 +272,7 @@ const getImageUrl = (imagePath: string | undefined) => {
                   )}
                 </div>
                 <div className="flex-1 space-y-2">
-                  <div>
+                <div>
                     <Label htmlFor="avatar-upload" className="text-sm font-medium">
                       Profile Picture
                     </Label>
@@ -288,69 +288,69 @@ const getImageUrl = (imagePath: string | undefined) => {
                     disabled={uploading || isUpdatingProfile}
                     className="hidden"
                   />
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() =>
-                      document.getElementById("avatar-upload")?.click()
-                    }
-                    disabled={uploading || isUpdatingProfile}
+                 <Button
+  type="button"
+  size="sm"
+  variant="outline"
+  onClick={() =>
+    document.getElementById("avatar-upload")?.click()
+  }
+  disabled={uploading || isUpdatingProfile}
                     className="w-fit"
-                  >
-                    {uploading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Uploading...
-                      </>
-                    ) : (
-                      "Change Avatar"
-                    )}
-                  </Button>
+>
+  {uploading ? (
+    <>
+      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      Uploading...
+    </>
+  ) : (
+    "Change Avatar"
+  )}
+</Button>
                 </div>
               </div>
               <div className="grid gap-6">
-                <FormField
-                  control={profileForm.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
+              <FormField
+                control={profileForm.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
                       <FormLabel className="text-sm font-medium">Full Name</FormLabel>
-                      <FormControl>
+                    <FormControl>
                         <Input {...field} className="max-w-md" placeholder="Enter your full name" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-sm font-medium">Email Address</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    defaultValue={user?.email}
-                    disabled
+                <Input
+                  id="email"
+                  type="email"
+                  defaultValue={user?.email}
+                  disabled
                     className="max-w-md bg-muted/50"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Your email address cannot be changed.
-                  </p>
-                </div>
+                />
+                <p className="text-xs text-muted-foreground">
+                  Your email address cannot be changed.
+                </p>
+              </div>
               </div>
               <div className="flex items-center gap-3 pt-2">
-                <Button
-                  type="submit"
-                  disabled={isUpdatingProfile || isPending}
-                >
-                  {isUpdatingProfile ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    "Save Changes"
-                  )}
-                </Button>
+              <Button
+                type="submit"
+                disabled={isUpdatingProfile || isPending}
+              >
+                {isUpdatingProfile ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save Changes"
+                )}
+              </Button>
                 {isUpdatingProfile && (
                   <p className="text-xs text-muted-foreground">Updating your profile...</p>
                 )}
@@ -480,19 +480,19 @@ const getImageUrl = (imagePath: string | undefined) => {
         </div>
 
               <div className="flex items-center gap-3 pt-2">
-                <Button
-                  type="submit"
-                  disabled={isPending || isChangingPassword}
-                >
-                  {isPending || isChangingPassword ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Updating...
-                    </>
-                  ) : (
-                    "Update Password"
-                  )}
-                </Button>
+              <Button
+                type="submit"
+                disabled={isPending || isChangingPassword}
+              >
+                {isPending || isChangingPassword ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  "Update Password"
+                )}
+              </Button>
                 {(isPending || isChangingPassword) && (
                   <p className="text-xs text-muted-foreground">Updating your password...</p>
                 )}

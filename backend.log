@@ -176,3 +176,7 @@ DB Connected successfully.
 [0mGET /api-v1/workspaces [36m304[0m 18.119 ms - -[0m
 [0mGET /api-v1/workspaces/6899c751cf9485eb7acdf031/stats [36m304[0m 28.808 ms - -[0m
 [0mGET /api-v1/workspaces/6899c751cf9485eb7acdf031/stats [36m304[0m 88.140 ms - -[0m
+[0mGET /api-v1/workspaces [36m304[0m 7.110 ms - -[0m
+[0mGET /api-v1/workspaces [36m304[0m 6.806 ms - -[0m
+[0mGET /api-v1/workspaces/6899c751cf9485eb7acdf031/stats [36m304[0m 14.820 ms - -[0m
+[0mGET /api-v1/workspaces/6899c751cf9485eb7acdf031/stats [36m304[0m 13.310 ms - -[0m

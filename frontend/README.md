@@ -1,24 +1,14 @@
-# Welcome to React Router!
+# Trackwise Frontend
 
-A modern, production-ready template for building full-stack React applications using React Router.
+The frontend application for Trackwise, built with React Router v7, TypeScript, and Tailwind CSS.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
+## 🚀 Quick Start
 
-## Features
-
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
-
-## Getting Started
+### Prerequisites
+- Node.js v18 or higher
+- npm, yarn, or pnpm
 
 ### Installation
-
-Install the dependencies:
 
 ```bash
 npm install
@@ -26,62 +16,101 @@ npm install
 
 ### Development
 
-Start the development server with HMR:
+Start the development server:
 
 ```bash
 npm run dev
 ```
 
-Your application will be available at `http://localhost:5173`.
+The application will be available at `http://localhost:5173`.
 
-## Building for Production
+### Environment Variables
 
-Create a production build:
+Create a `.env` file in the frontend directory:
+
+```env
+VITE_API_URL=http://localhost:5000/api-v1
+VITE_FILES_URL=http://localhost:5000
+VITE_GOOGLE_CLIENT_ID=your-google-oauth-client-id
+```
+
+## 📦 Available Scripts
+
+- `npm run dev` - Start development server with hot reload
+- `npm run build` - Build for production
+- `npm start` - Start production server
+- `npm run typecheck` - Run TypeScript type checking
+
+## 🏗️ Project Structure
+
+```
+frontend/
+├── app/
+│   ├── components/        # Reusable React components
+│   │   ├── dashboard/    # Dashboard-specific components
+│   │   ├── layout/       # Layout components (Header, Sidebar)
+│   │   ├── project/      # Project-related components
+│   │   ├── task/         # Task-related components
+│   │   ├── workspace/    # Workspace components
+│   │   └── ui/         # Reusable UI components (Radix UI)
+│   ├── routes/           # Page components
+│   │   ├── auth/        # Authentication pages
+│   │   ├── dashboard/   # Dashboard pages
+│   │   ├── user/        # User profile pages
+│   │   └── root/        # Root/home page
+│   ├── hooks/           # Custom React hooks
+│   ├── lib/             # Utility functions
+│   ├── provider/        # Context providers
+│   ├── types/           # TypeScript type definitions
+│   └── app.css          # Global styles
+├── public/              # Static assets
+└── package.json
+```
+
+## 🎨 Tech Stack
+
+- **Framework**: React Router v7
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS v4
+- **UI Components**: Radix UI
+- **State Management**: React Query (TanStack Query)
+- **Forms**: React Hook Form + Zod
+- **Charts**: Recharts
+- **Icons**: Lucide React
+- **Notifications**: Sonner
+- **Real-time**: Socket.IO Client
+
+## 🎯 Key Features
+
+- Server-side rendering (SSR) with React Router
+- Hot Module Replacement (HMR) for fast development
+- Type-safe with TypeScript
+- Modern UI with Tailwind CSS
+- Responsive design
+- Dark/Light theme support
+- Real-time updates with Socket.IO
+
+## 📝 Building for Production
 
 ```bash
 npm run build
 ```
 
-## Deployment
+The build output will be in the `build/` directory:
+- `build/client/` - Static assets
+- `build/server/` - Server-side code
 
-### Docker Deployment
+## 🐳 Docker
 
-To build and run using Docker:
+See the main [README.md](../README.md) for Docker setup instructions.
 
-```bash
-docker build -t my-app .
+## 📖 Documentation
 
-# Run the container
-docker run -p 3000:3000 my-app
-```
-
-The containerized application can be deployed to any platform that supports Docker, including:
-
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
+- [React Router Docs](https://reactrouter.com/)
+- [Tailwind CSS Docs](https://tailwindcss.com/)
+- [Radix UI Docs](https://www.radix-ui.com/)
+- [React Query Docs](https://tanstack.com/query/latest)
 
 ---
 
-Built with ❤️ using React Router.
+Part of the Trackwise project management application.

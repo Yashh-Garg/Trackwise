@@ -458,10 +458,6 @@ Contributions are welcome! Please follow these steps:
 
 This project is licensed under the ISC License.
 
-## 👨‍💻 Author
-
-Built with ❤️ by [Your Name]
-
 ## 🙏 Acknowledgments
 
 - Inspired by Jira and other project management tools
